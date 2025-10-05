@@ -64,7 +64,6 @@ class Bichette:
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
         if filepath.exists():
-            print(f"Skipping: {filepath}")
             return filepath
         try:
             r = requests.get(img_url, timeout=10)

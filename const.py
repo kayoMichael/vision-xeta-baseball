@@ -1,7 +1,4 @@
 BOWMAN_CHROME_PARALLELS_LIST = [
-    # Classic refractor rainbow
-    ["base"],
-
     # Shimmer parallels
     ["purple", "shimmer"],
     ["blue", "shimmer"],
@@ -32,7 +29,6 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["orange", "atomic"],
 
     # Mojo (Mega Box exclusive)
-    ["mojo"],
     ["gold", "mojo"],
     ["orange", "mojo"],
     ["red", "mojo"],
@@ -42,6 +38,7 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["sapphire", "blue"],
     ["sapphire", "orange"],
     ["sapphire", "red"],
+    ["sapphire"],
     ["padparadscha"],
 
     # Other less common Chrome parallels
@@ -49,6 +46,8 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["yellow"],
     ["rose", "gold"],
     ["black"],
+    ["aqua"],
+    ["x-fractor"],
     ["platinum"],
     ["canary", "diamond"],
     ["purple"],
@@ -59,6 +58,9 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["red"],
     ["superfractor"],
     ["refractor"],
+
+    ["mojo"],
+    ["base"],
 ]
 
 BOWMAN_PAPER_PARALLELS_LIST = [

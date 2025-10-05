@@ -67,7 +67,7 @@ def scrape_ebay(info, player_list, bowman_player_list):
             url = (
                 f"https://www.ebay.com/sch/i.html?_nkw={name}"
                 "&_sacat=0&_from=R40&_trksid=m570.l1313"
-                "&LH_TitleDesc=0&_odkw={name}"
+                f"&LH_TitleDesc=0&_odkw={name}"
             )
             tree = info.fetch(url=url)
             if not tree:

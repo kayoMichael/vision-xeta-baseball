@@ -7,8 +7,6 @@ COPY . /app
 
 RUN apt-get update && apt-get install -y git libglib2.0-0 libsm6 libxrender1 libxext6 && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cpu
-
-RUN pip install transformers[torch] datasets pandas pillow
+RUN pip install transformers[torch] datasets pandas pillow torch torchvision torchaudio
 
 CMD ["python", "train.py"]

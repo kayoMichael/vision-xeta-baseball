@@ -6,7 +6,10 @@ router = APIRouter()
 
 @router.get("/prospect")
 def prospect(body: Prospect):
-    prospect = prospect_info(body)
+    try:
+        stat = prospect_info(body)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail={e})
 
-    return prospect
+    return stat
 

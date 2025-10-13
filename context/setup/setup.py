@@ -1,7 +1,7 @@
 import re
 import pdfplumber
-from extract import Bichette
-from const import BOWMAN_PAPER_PARALLELS_LIST, BOWMAN_CHROME_PARALLELS_LIST
+from context.setup.extract import Bichette
+from context.const.baseball_const import BOWMAN_PAPER_PARALLELS_LIST, BOWMAN_CHROME_PARALLELS_LIST
 
 
 def parse_rows_from_text(text: str):

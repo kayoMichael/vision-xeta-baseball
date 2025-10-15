@@ -2,3 +2,8 @@
 __pycache__
 .idea
 .DS_Store
+cards.csv
+data/
+Skenes.sqlite
+.env
+data_set

@@ -1,5 +1,4 @@
 import os
-
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader
@@ -9,7 +8,6 @@ from transformers import (
     CLIPModel,
     Trainer,
     TrainingArguments,
-    DataCollatorWithPadding
 )
 
 if torch.backends.mps.is_available():
@@ -26,11 +24,6 @@ class LossTrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         """
         Override compute_loss from Trainer to return the loss for backpropagation
-        :param model:
-        :param inputs:
-        :param return_outputs:
-        :param kwargs:
-        :return:
         """
         outputs = model(**inputs, return_loss=True)
         loss = outputs.loss
@@ -42,7 +35,6 @@ class TrainCLIP:
         self.processor = CLIPProcessor.from_pretrained(MODEL_NAME)
         self.root = "data_set"
         self.dataset = None
-        self.processed = None
 
     def _data_set_setup(self):
         data = []
@@ -104,9 +96,7 @@ class TrainCLIP:
             remove_unused_columns=False,
             save_strategy="epoch",
             eval_strategy="epoch",
-            load_best_model_at_end=True,
-            metric_for_best_model="eval_loss",
-            greater_is_better=False,
+            load_best_model_at_end=False,
             logging_steps=50,
             logging_dir="./logs",
         )
@@ -121,81 +111,78 @@ class TrainCLIP:
         trainer.save_model("./clip-card-model")
         self.processor.save_pretrained("./clip-card-model")
 
+
     def compute_retrieval_accuracy(self, batch_size=64):
         """
-        Compute retrieval accuracy with proper padding for variable-length sequences
+        Compute class-level retrieval accuracy (Image -> Text) on the validation split.
         """
+        self._data_set_setup()
+        split = self.dataset.train_test_split(test_size=0.2, seed=42)
+        val_ds = split["test"]
+
         self.model.eval()
 
         img_embs = []
         txt_embs = []
-
-        data_collator = DataCollatorWithPadding(tokenizer=self.processor.tokenizer)
+        labels = []
 
         def collate_fn(batch):
-            pixel_values = torch.stack([torch.tensor(item["pixel_values"]) for item in batch])
+            images = [item["image"] for item in batch]
+            texts = [item["label"] for item in batch]
 
-            text_batch = [{"input_ids": item["input_ids"],
-                           "attention_mask": item["attention_mask"]} for item in batch]
-            padded_text = data_collator(text_batch)
-
-            return {
-                "pixel_values": pixel_values,
-                "input_ids": padded_text["input_ids"],
-                "attention_mask": padded_text["attention_mask"]
-            }
+            proc = self.processor(
+                text=texts,
+                images=images,
+                return_tensors="pt",
+                padding=True,
+                truncation=True
+            )
+            return proc, texts
 
         dataloader = DataLoader(
-            self.processed,
+            val_ds,
             batch_size=batch_size,
-            collate_fn=collate_fn,
+            collate_fn=lambda b: collate_fn(b),
             shuffle=False
         )
 
         with torch.no_grad():
-            for batch in dataloader:
-                pixel_values = batch["pixel_values"].to(device)
-                input_ids = batch["input_ids"].to(device)
-                attention_mask = batch["attention_mask"].to(device)
+            for proc, batch_labels in dataloader:
+                pixel_values = proc["pixel_values"].to(device)
+                input_ids = proc["input_ids"].to(device)
+                attention_mask = proc["attention_mask"].to(device)
 
-                img_features = self.model.get_image_features(pixel_values)
-                txt_features = self.model.get_text_features(
+                img_feat = self.model.get_image_features(pixel_values)
+                txt_feat = self.model.get_text_features(
                     input_ids=input_ids,
                     attention_mask=attention_mask
                 )
 
-                img_features = img_features / img_features.norm(dim=-1, keepdim=True)
-                txt_features = txt_features / txt_features.norm(dim=-1, keepdim=True)
+                img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True)
+                txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True)
 
-                img_embs.append(img_features.cpu())
-                txt_embs.append(txt_features.cpu())
+                img_embs.append(img_feat.cpu())
+                txt_embs.append(txt_feat.cpu())
+                labels.extend(batch_labels)
 
         img_embs = torch.cat(img_embs, dim=0)
         txt_embs = torch.cat(txt_embs, dim=0)
 
-        similarities = img_embs @ txt_embs.T
+        sims = img_embs @ txt_embs.T
 
-        predictions = similarities.argmax(dim=1)
-        ground_truth = torch.arange(len(self.processed))
-        correct = (predictions == ground_truth).sum().item()
+        # Correct prediction
+        preds = sims.argmax(dim=1)
+        top1_correct = sum(labels[i] == labels[preds[i]] for i in range(len(labels)))
+        top1_acc = top1_correct / len(labels)
 
-        accuracy = correct / len(self.processed)
+        # Top 5 Accuracy
+        top5 = sims.topk(5, dim=1).indices
+        top5_correct = sum(any(labels[p] == labels[i] for p in top5[i])
+                           for i in range(len(labels)))
+        top5_acc = top5_correct / len(labels)
 
-        print(f"Total samples: {len(self.processed)}")
-        print(f"Correct predictions: {correct}")
-        print(f"Retrieval accuracy: {accuracy:.4f}")
+        print(f"Validation samples: {len(labels)}")
+        print(f"Class-level Top-1 Accuracy: {top1_acc:.4f}")
+        print(f"Class-level Top-5 Accuracy: {top5_acc:.4f}")
 
-        top5_predictions = similarities.topk(5, dim=1).indices
-        top5_correct = sum([gt in top5_pred for gt, top5_pred in
-                            zip(ground_truth, top5_predictions)])
-        top5_accuracy = top5_correct / len(self.processed)
-        print(f"Top-5 retrieval accuracy: {top5_accuracy:.4f}")
-
-        return accuracy
-
-
-if __name__ == "__main__":
-    clip = TrainCLIP()
-
-    clip.train_model()
-
+        return top1_acc, top5_acc

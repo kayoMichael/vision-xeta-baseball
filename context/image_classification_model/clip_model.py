@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import torch
+import json
 from torch.utils.data import DataLoader
 from datasets import load_dataset, Features, Value, Image
 from transformers import (
@@ -17,7 +18,7 @@ elif torch.cuda.is_available():
 else:
     device = torch.device("cpu")
 
-MODEL_NAME = "openai/clip-vit-base-patch16"
+MODEL_NAME = "./clip-card-model"
 
 
 class LossTrainer(Trainer):
@@ -29,10 +30,11 @@ class LossTrainer(Trainer):
         loss = outputs.loss
         return (loss, outputs) if return_outputs else loss
 
-class TrainCLIP:
+class ClipModel:
     def __init__(self):
         self.model = CLIPModel.from_pretrained(MODEL_NAME)
-        self.processor = CLIPProcessor.from_pretrained(MODEL_NAME)
+        self.model.to(device)
+        self.processor = CLIPProcessor.from_pretrained(MODEL_NAME, use_fast=True)
         self.root = "data_set"
         self.dataset = None
 
@@ -66,6 +68,28 @@ class TrainCLIP:
             "pixel_values": process["pixel_values"][0]
         }
 
+    def _load_or_build_labels(self, json_path="type/card_types.json"):
+        """
+        Returns list of unique card type labels.
+        If json doesn't exist, build from dataset and save it.
+        """
+        # Case 1: Use existing cached labels
+        if os.path.exists(json_path):
+            with open(json_path, "r") as f:
+                return json.load(f)
+
+        # Case 2: Build dataset & extract labels
+        if self.dataset is None:
+            self._data_set_setup()
+
+        labels = sorted(set(item["label"] for item in self.dataset))
+
+        # Save to json for future inference reuse
+        with open(json_path, "w") as f:
+            json.dump(labels, f, indent=2)
+
+        return labels
+
     def train_model(self):
         self._data_set_setup()
 
@@ -87,7 +111,7 @@ class TrainCLIP:
             return proc
 
         training_args = TrainingArguments(
-            output_dir="./clip-card-model",
+            output_dir="../../clip-card-model",
             per_device_train_batch_size=2,
             gradient_accumulation_steps=4,
             num_train_epochs=15,
@@ -98,7 +122,7 @@ class TrainCLIP:
             eval_strategy="epoch",
             load_best_model_at_end=False,
             logging_steps=50,
-            logging_dir="./logs",
+            logging_dir="../../logs",
         )
         trainer = LossTrainer(
             model=self.model,
@@ -186,3 +210,38 @@ class TrainCLIP:
         print(f"Class-level Top-5 Accuracy: {top5_acc:.4f}")
 
         return top1_acc, top5_acc
+
+    def predict(self, image):
+        """
+        Return the single best predicted card type for one image.
+        """
+
+        self.model.eval()
+
+        proc = self.processor(
+            text=None,
+            images=image,
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        )
+        with torch.no_grad():
+            img_feat = self.model.get_image_features(proc["pixel_values"].to(device))
+            img_feat = img_feat / img_feat.norm(dim=-1, keepdim=True)
+
+        labels = self._load_or_build_labels()
+        text_proc = self.processor(text=labels, return_tensors="pt", padding=True, truncation=True)
+        text_input_ids = text_proc["input_ids"].to(device)
+        text_attention = text_proc["attention_mask"].to(device)
+
+        with torch.no_grad():
+            txt_feat = self.model.get_text_features(
+                input_ids=text_input_ids,
+                attention_mask=text_attention,
+            )
+            txt_feat = txt_feat / txt_feat.norm(dim=-1, keepdim=True)
+
+        sims = (img_feat @ txt_feat.T).squeeze(0)
+        best_idx = sims.argmax().item()
+
+        return labels[best_idx]

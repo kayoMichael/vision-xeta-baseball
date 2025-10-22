@@ -1,6 +1,5 @@
 import time
 import requests_cache
-import requests
 from lxml import html
 from pathlib import Path
 import requests

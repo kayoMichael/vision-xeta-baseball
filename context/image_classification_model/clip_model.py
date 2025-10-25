@@ -73,19 +73,19 @@ class ClipModel:
         Returns list of unique card type labels.
         If json doesn't exist, build from dataset and save it.
         """
-        # Case 1: Use existing cached labels
-        if os.path.exists(json_path):
-            with open(json_path, "r") as f:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(current_dir, json_path)
+
+        if os.path.exists(full_path):
+            with open(full_path, "r") as f:
                 return json.load(f)
 
-        # Case 2: Build dataset & extract labels
         if self.dataset is None:
             self._data_set_setup()
 
         labels = sorted(set(item["label"] for item in self.dataset))
 
-        # Save to json for future inference reuse
-        with open(json_path, "w") as f:
+        with open(full_path, "w") as f:
             json.dump(labels, f, indent=2)
 
         return labels

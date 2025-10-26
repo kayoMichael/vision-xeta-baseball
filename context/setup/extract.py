@@ -1,20 +1,18 @@
 import time
 import requests_cache
-import requests
 from lxml import html
 from pathlib import Path
 import requests
 import re
 import os
 from dotenv import load_dotenv
-from openai import OpenAI
 from openai.types.chat import (
     ChatCompletionSystemMessageParam,
     ChatCompletionUserMessageParam,
 )
-from openai.types.chat.completion_create_params import ResponseFormatJSONObject
+from context.setup.deepseek import DeepSeek
 from lxml.html import HtmlElement
-from context.const.prompt import schema_instruction
+from context.const.prompt import prospect_instruction
 
 load_dotenv()
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
@@ -98,8 +96,7 @@ class Bichette:
 
     @staticmethod
     def deep_seek(prompt: str) -> str:
-        client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
-
+        deepseek = DeepSeek()
         system_msg: ChatCompletionSystemMessageParam = {
             "role": "system",
             "content": (
@@ -113,20 +110,15 @@ class Bichette:
             "role": "user",
             "content": f"""
         
-        {schema_instruction}
+        {prospect_instruction}
         HTML:
         {prompt}
         """,
         }
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            temperature=0,
-            response_format=ResponseFormatJSONObject(type="json_object"),
-            messages=[system_msg, user_msg],
-        )
+        response = deepseek.invoke(system_msg, user_msg)
 
         try:
-            return response.choices[0].message.content
+            return response
         except Exception as e:
             print(f"DeepSeek request failed: {e}")
             return f"DeepSeek request failed: {e}"

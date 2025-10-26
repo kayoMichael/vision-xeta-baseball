@@ -1,4 +1,5 @@
 import re
+import os
 import pdfplumber
 from context.setup.extract import Bichette
 from context.const.baseball_const import BOWMAN_PAPER_PARALLELS_LIST, BOWMAN_CHROME_PARALLELS_LIST
@@ -94,8 +95,8 @@ def scrape_ebay(info, player_list, bowman_player_list):
                             matched = parallel
                             break
 
-                save_dir = f"data_set/{category}/{matched if matched else 'base'}"
-
+                save_dir = f"../clip_model/data_set/{category}/{matched if matched else 'base'}"
+                os.makedirs(save_dir, exist_ok=True)
                 auto = info.has_auto(title)
                 safe_name = info.safe_filename(title) + ".jpg"
                 info.download_image(image_url, save_dir, safe_name, auto)

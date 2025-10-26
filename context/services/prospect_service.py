@@ -5,7 +5,6 @@ import json
 
 def prospect_info(prospect: Prospect):
     info = ChadwickRegister(**prospect.model_dump())
-
     player_id = info.search_player()
 
     if not player_id:

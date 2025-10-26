@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+card_router = APIRouter()
 
-@router.get("/baseball_card")
+@card_router.get("/baseball_card")
 def baseball_card():
     return {"message": "success"}

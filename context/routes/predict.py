@@ -1,8 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from context.services.predict_service import predict_service
-router = APIRouter()
 
-@router.post("/predict")
+predict_router = APIRouter()
+
+@predict_router.post("/predict")
 async def predict(front: UploadFile = File(...), back: UploadFile = File(...)):
     front_bytes_data = await front.read()
     back_bytes_data = await back.read()

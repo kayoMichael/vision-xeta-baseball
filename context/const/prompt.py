@@ -54,6 +54,7 @@ card_extract_instruction = """
     "card_code": "string | null",
     "graded": "PSA/BGS/SGC grading info, or 'Ungraded' if none",
     "serial_number": "string like '/199' | Not Numbered (if none exits)",
+    "year": "int" // should be the year after {year}* on the card. This represents the year of issue.
   }
 }
 

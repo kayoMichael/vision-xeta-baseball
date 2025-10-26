@@ -1,10 +1,7 @@
 from context.support.method import get_current_mlb_season
 
-instruction = """
-You are a data parser that summarizes Baseball Reference HTML into a compact JSON structure.
-
+prospect_extract_instruction = """
 Output ONLY valid JSON following this schema exactly:
-
 {{
   "player_profile": {{
     "name": "string",
@@ -35,12 +32,41 @@ Output ONLY valid JSON following this schema exactly:
                  "ERA Title": "int", "Batting title": "int", "Cy Young": "int", "Triple Crown": "int",
                  "World Series": "int", "WS MVP": "int", "NLCS MVP": "int", "ALCS MVP": "int", "ROY": "int"}}
 }}
-
-- Summarize season tables into totals.
 - Do NOT list every season or game.
 - If a field does not exist, set it to null.
 - For current_year_stats, list the stats for the player for the season {season}
-- Return only valid JSON, no commentary.
 """
 
-schema_instruction = instruction.format(season=get_current_mlb_season())
+card_extract_instruction = """
+"Return ONLY valid JSON in exactly this structure:"
+{
+  "player_profile": {
+    "name": "string | null",
+    "position": "string | null",
+    "team": "string | null",
+    "date_of_birth": "MM-DD-YYYY | null",
+    "location_of_birth": "string | null",
+    "resume": "string | null",     // summary paragraph if present
+    "skills": "string | null",     // text under a skills/scouting section if present
+    "up_close": "string | null"    // text under 'Up Close' or similar header if present
+  },
+  "card_info": {
+    "card_code": "string | null",
+    "graded": "PSA/BGS/SGC grading info, or 'Ungraded' if none",
+    "serial_number": "string like '/199' | Not Numbered (if none exits)",
+  }
+}
+
+Rules:
+- Some OCR text may contain typos — infer closest valid interpretation.
+- If a field is not findable, return null — do not invent.
+- Do not include any fields not listed above.
+- Output only JSON. No explanations.
+"""
+
+
+prospect_instruction = prospect_extract_instruction.format(season=get_current_mlb_season())
+
+
+
+

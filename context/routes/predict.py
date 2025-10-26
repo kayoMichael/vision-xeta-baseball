@@ -9,6 +9,5 @@ async def predict(front: UploadFile = File(...), back: UploadFile = File(...)):
     try:
         result = predict_service(front_bytes_data, back_bytes_data)
     except Exception as exception:
-        raise HTTPException(status_code=404, detail=str(exception))
-    return {"result": result}
-
+        raise HTTPException(status_code=400, detail=str(exception))
+    return result

@@ -12,4 +12,3 @@ def prospect(body: Prospect):
         raise HTTPException(status_code=404, detail={e})
 
     return stat
-

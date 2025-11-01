@@ -9,6 +9,7 @@ from openai.types.chat import (
     ChatCompletionUserMessageParam,
 )
 from context.const.prompt import card_extract_instruction
+
 reader = easyocr.Reader(['en'])
 
 def predict_service(front, back):

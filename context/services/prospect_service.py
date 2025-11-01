@@ -10,7 +10,16 @@ def prospect_info(prospect: Prospect):
     if not player_id:
         raise ValueError(f"Prospect {prospect} not found")
 
-    bichette = Bichette(rate_limit=0, cache=False)
+    headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/123.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+        }
+
+    bichette = Bichette(rate_limit=0, cache=False, headers=headers)
     stat_html = bichette.fetch(f"https://www.baseball-reference.com/players/{player_id[0]}/{player_id}.shtml")
     prompt = bichette.clean_html_for_ai(stat_html)
     statistics = bichette.deep_seek(prompt)

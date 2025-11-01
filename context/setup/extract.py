@@ -18,17 +18,10 @@ load_dotenv()
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
 
 class Bichette:
-    def __init__(self, rate_limit: float = 1.0, cache: bool = True):
+    def __init__(self, rate_limit: float = 1.0, cache: bool = True, headers: dict = None):
         self.rate_limit = rate_limit
         self.session = requests_cache.CachedSession("Skenes") if cache else requests.Session()
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/123.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-        }
+        self.headers = headers
 
     def fetch(self, url: str):
         """Fetch a URL and return lxml HTML tree."""

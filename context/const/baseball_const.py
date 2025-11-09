@@ -25,11 +25,12 @@ BOWMAN_CHROME_PARALLELS_LIST = [
 
     # --- Speckle / Lava ---
     ["speckle"],
+    ["aqua", "pink", "vapor", "wave"],
     ["aqua", "lava"],
     ["blue", "lava"],
+    ["rose", "gold", "lava"],
     ["gold", "lava"],
     ["red", "lava"],
-    ["black", "lava"],
     ["orange", "lava"],
     ["purple", "lava"],
     ["fuchsia", "lava"],
@@ -81,6 +82,15 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["sapphire", "green"],
     ["sapphire", "yellow"],
 
+    # --- Geometric (2025 release) ---
+    ["fuchsia", "geometric"],
+    ["purple", "geometric"],
+    ["green", "geometric"],
+    ["orange", "geometric"],
+    ["gold", "geometric"],
+    ["purple", "geometric"],
+    ["blue", "geometric"],
+
     # --- Other rare / special parallels ---
     ["padparadscha"],
     ["rose", "gold"],
@@ -126,9 +136,10 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["red", "wave"],
     ["black", "wave"],
     ["fuchsia", "wave"],
+    ["aqua", "pink", "vapor", "wave"],
     ["aqua", "wave"],
     ["purple", "wave"],
-    ["yellow", "wave"]],
+    ["yellow", "wave"], ["wave"]],
 
     # --- Speckle / Lava ---
     "speckle": ["speckle"],
@@ -136,15 +147,14 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["blue", "lava"],
     ["gold", "lava"],
     ["red", "lava"],
-    ["black", "lava"],
     ["orange", "lava"],
     ["purple", "lava"],
-    ["fuchsia", "lava"]],
+    ["fuchsia", "lava"], ["lava"]],
 
     # --- Atomic / Cracked Ice ---
     "atomic":
     [["orange", "atomic"],
-    ["red", "atomic"]],
+    ["red", "atomic"], ["atomic"]],
 
     # --- Mojo (Mega Box exclusive) ---
     "mojo": [["gold", "mojo"],
@@ -155,22 +165,23 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["green", "mojo"],
     ["purple", "mojo"],
     ["fuchsia", "mojo"],
-    ["yellow", "mojo"]],
+    ["yellow", "mojo"], ["mojo"]],
 
     # --- X-Fractors (checkerboard grid) ---
     "x-fractor": [["aqua", "x-fractor"],
     ["yellow", "x-fractor"],
+    ["green", "x-fractor"],
     ["orange", "x-fractor"],
     ["red", "x-fractor"],
-    ["black", "x-fractor"]],
+    ["black", "x-fractor"], ["x-fractor"]],
 
     # --- Mini-Diamond / RayWave ---
     "mini diamond":[
-    ["black", "mini", "diamond"]],
+    ["black", "mini", "diamond"], ["mini", "diamond"],],
 
     "raywave":
     [["purple", "raywave"],
-    ["red", "raywave"]],
+    ["red", "raywave"], ["raywave"]],
 
     # --- Sapphire (special release) ---
     "sapphire":
@@ -179,21 +190,30 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["sapphire", "red"],
     ["sapphire", "gold"],
     ["sapphire", "green"],
-    ["sapphire", "yellow"], ["padparadscha"]],
+    ["sapphire", "yellow"], ["sapphire"], ["padparadscha"]],
 
     # --- Reptilian ---
     "reptilian": [["green", "reptilian"],
     ["orange", "reptilian"],
     ["red", "reptilian"],
     ["blue", "reptilian"],
-    ["black", "reptilian"]],
+    ["black", "reptilian"], ["reptilian", 'refractor']],
+
+    # --- Geometric ---
+    "geometric": [["orange", "geometric"],
+    ["blue", "geometric"],
+    ["green", "geometric"],
+    ["green", "geometric"],
+    ["gold", "geometric"],
+    ["purple", "geometric"],
+    ["fuchsia", "geometric"]],
 
     # --- Other rare / special parallels ---
     "refractor": [["rose", "gold", 'refractor'],
     ["canary", "diamond", 'refractor'],
     ["platinum", 'refractor'],
-    ["pink", 'refractor'],
     ["black", 'refractor'],
+    ["pink", 'refractor'],
     ["purple", 'refractor'],
     ["blue", 'refractor'],
     ["green", 'refractor'],
@@ -203,6 +223,7 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["orange", 'refractor'],
     ["red", 'refractor'],
     ["fuchsia", 'refractor'],
+    ["reptilian", 'refractor'],
     ["superfractor"]],
 }
 
@@ -212,11 +233,11 @@ BOWMAN_PAPER_PARALLELS_LIST = [
 
     # --- Common colors ---
     "sky blue",      # /499
-    "silver",        # /499 alt name
+    "silver",        # /499
     "purple",        # /250
     "blue",          # /150
     "neon green",    # /399
-    "lime green",    # /399 alt name
+    "lime green",    # /399
     "green",         # /99
     "gold",          # /50
     "orange",        # /25

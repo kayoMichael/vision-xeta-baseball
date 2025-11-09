@@ -13,6 +13,7 @@ from openai.types.chat import (
 from context.setup.deepseek import DeepSeek
 from lxml.html import HtmlElement
 from context.const.prompt import prospect_instruction
+from typing import Optional
 
 load_dotenv()
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
@@ -139,6 +140,21 @@ class Bichette:
         if len(keyword) == 1 and keyword[0] == "blue":
             return re.search(r"\bblue\b(?!\s+jays)", title.lower()) is not None
         return all(re.search(rf"\b{word}\b", title.lower()) for word in keyword)
+
+    @staticmethod
+    def match_bowman_category(title, keyword: list[list[str]]) -> Optional[list[str]]:
+        for word_group in keyword:
+            matches = []
+            for w in word_group:
+                if w == "blue":
+                    matches.append(re.search(r"\bblue\b(?!\s+jays)", title.lower()) is not None)
+                else:
+                    matches.append(re.search(rf"\b{re.escape(w)}\b", title.lower()) is not None)
+
+            if all(matches):
+                return word_group
+
+        return None
 
     @staticmethod
     def has_auto(title: str) -> bool:

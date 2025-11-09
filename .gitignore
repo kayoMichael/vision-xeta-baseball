@@ -7,5 +7,5 @@ data/
 Skenes.sqlite
 .env
 data_set
-clip-card-model
+image_classification_model/models/clip-card-model
 logs

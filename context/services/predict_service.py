@@ -1,4 +1,4 @@
-from context.image_classification_model.clip_model import ClipModel
+from image_classification_model.clip_model import ClipModel
 from PIL import Image
 import io
 import json

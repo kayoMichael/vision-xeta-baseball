@@ -10,6 +10,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+from pathlib import Path
 
 if torch.backends.mps.is_available():
     device = torch.device("mps")
@@ -18,8 +19,11 @@ elif torch.cuda.is_available():
 else:
     device = torch.device("cpu")
 
-MODEL_NAME = "./clip-card-model"
-
+ROOT_DIR = Path(__file__).resolve().parent
+MODEL_NAME = ROOT_DIR / "models" / "clip-card-model"
+NEW_MODEL = ROOT_DIR / "models" / "clip-card-model-v1"
+MODEL_NAME = str(MODEL_NAME.resolve())
+NEW_MODEL = str(NEW_MODEL.resolve())
 
 class LossTrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
@@ -90,7 +94,7 @@ class ClipModel:
 
         return labels
 
-    def train_model(self):
+    def train_model(self, learning_rate, epoch, batch_size, accumulation_steps):
         self._data_set_setup()
 
         split = self.dataset.train_test_split(test_size=0.2, seed=42)
@@ -111,18 +115,18 @@ class ClipModel:
             return proc
 
         training_args = TrainingArguments(
-            output_dir="../../clip-card-model",
-            per_device_train_batch_size=2,
-            gradient_accumulation_steps=4,
-            num_train_epochs=15,
-            learning_rate=5e-6,
+            output_dir=NEW_MODEL,
+            per_device_train_batch_size=batch_size,
+            gradient_accumulation_steps=accumulation_steps,
+            num_train_epochs=epoch,
+            learning_rate=learning_rate,
             fp16=True,
             remove_unused_columns=False,
             save_strategy="epoch",
             eval_strategy="epoch",
             load_best_model_at_end=False,
             logging_steps=50,
-            logging_dir="../../logs",
+            logging_dir="../logs",
         )
         trainer = LossTrainer(
             model=self.model,
@@ -132,8 +136,8 @@ class ClipModel:
             data_collator=collate_fn,
         )
         trainer.train()
-        trainer.save_model("./clip-card-model")
-        self.processor.save_pretrained("./clip-card-model")
+        trainer.save_model(NEW_MODEL)
+        self.processor.save_pretrained(NEW_MODEL)
 
 
     def compute_retrieval_accuracy(self, batch_size=64):
@@ -245,3 +249,8 @@ class ClipModel:
         best_idx = sims.argmax().item()
 
         return labels[best_idx]
+
+
+if __name__ == "__main__":
+    clip = ClipModel()
+    clip.train_model(learning_rate=3e-6, epoch=15, batch_size=2, accumulation_steps=4)

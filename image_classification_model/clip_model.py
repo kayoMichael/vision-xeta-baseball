@@ -23,7 +23,7 @@ else:
     device = torch.device("cpu")
 
 ROOT_DIR = Path(__file__).resolve().parent
-HUGGING_FACE_MODEL = "openai/clip-vit-base-patch16"
+
 MODEL_NAME = ROOT_DIR / "models" / "clip-card-model-v1"
 NEW_MODEL = ROOT_DIR / "models" / "clip-card-model-v1"
 MODEL_NAME = str(MODEL_NAME.resolve())
@@ -39,7 +39,7 @@ class LossTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 class ClipModel:
-    def __init__(self, base_model = HUGGING_FACE_MODEL):
+    def __init__(self, base_model = MODEL_NAME):
         self.model = CLIPModel.from_pretrained(base_model)
         self.model.to(device)
         self.processor = CLIPProcessor.from_pretrained(base_model, use_fast=True)

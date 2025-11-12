@@ -13,7 +13,7 @@ from context.const.prompt import card_extract_instruction
 reader = easyocr.Reader(['en'])
 
 def predict_service(front, back):
-    clip = ClipModel()
+    clip = ClipModel(base_model="")
     deepseek = DeepSeek()
 
     front_img = Image.open(io.BytesIO(front)).convert("RGB")

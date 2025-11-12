@@ -9,18 +9,7 @@ from lxml import etree
 def baseball_card_services(card_info: CardInfo):
     """Fetch and extract detailed card information from sportscardspro."""
 
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/123.0.0.0 Safari/537.36"
-        ),
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-    }
-
-    bichette = Bichette(rate_limit=0, headers=headers, cache=False)
+    bichette = Bichette(rate_limit=0, cache=False)
 
     def fetch_and_clean(url: str) -> str:
         """Fetch a page and return minified HTML as string."""

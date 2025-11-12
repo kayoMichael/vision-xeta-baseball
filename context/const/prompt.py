@@ -102,6 +102,22 @@ card_info_extract_system_msg: ChatCompletionSystemMessageParam = {
     )
 }
 
+baseball_reference_system_msg: ChatCompletionSystemMessageParam = {
+        "role": "system",
+        "content": (
+            "You are a data parser that extracts baseball player stats "
+            "from Baseball Reference HTML into structured JSON. "
+            "Return only valid JSON, with no commentary or explanation."
+        ),
+    }
+
+ocr_system_msg: ChatCompletionSystemMessageParam = {
+    "role": "system",
+    "content": (
+        "You are given OCR-extracted text from a baseball card (front + back). "
+    ),
+}
+
 card_info_extract_instruction = """
 Output ONLY valid JSON following this schema exactly:
 {{

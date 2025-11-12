@@ -69,6 +69,9 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     # --- Mini-Diamond / RayWave ---
     ["mini", "diamond"],
     ["black", "mini", "diamond"],
+    ["yellow", "mini", "diamond"],
+    ["rose gold", "mini", "diamond"],
+    ["green", "mini", "diamond"],
     ["raywave"],
     ["purple", "raywave"],
     ["red", "raywave"],
@@ -90,6 +93,8 @@ BOWMAN_CHROME_PARALLELS_LIST = [
     ["gold", "geometric"],
     ["purple", "geometric"],
     ["blue", "geometric"],
+    ["black", "geometric"],
+    ["red", "geometric"],
 
     # --- Other rare / special parallels ---
     ["padparadscha"],
@@ -206,6 +211,8 @@ BOWMAN_CHROME_PARALLELS_DICT = {
     ["green", "geometric"],
     ["gold", "geometric"],
     ["purple", "geometric"],
+    ["black", "geometric"],
+    ["red", "geometric"],
     ["fuchsia", "geometric"]],
 
     # --- Other rare / special parallels ---

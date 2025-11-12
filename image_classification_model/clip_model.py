@@ -13,14 +13,18 @@ from transformers import (
 from pathlib import Path
 
 if torch.backends.mps.is_available():
+    print("Using Apple GPU")
     device = torch.device("mps")
 elif torch.cuda.is_available():
+    print("Using CUDA GPU")
     device = torch.device("cuda")
 else:
+    print("Using CPU")
     device = torch.device("cpu")
 
 ROOT_DIR = Path(__file__).resolve().parent
-MODEL_NAME = ROOT_DIR / "models" / "clip-card-model"
+HUGGING_FACE_MODEL = "openai/clip-vit-base-patch16"
+MODEL_NAME = ROOT_DIR / "models" / "clip-card-model-v1"
 NEW_MODEL = ROOT_DIR / "models" / "clip-card-model-v1"
 MODEL_NAME = str(MODEL_NAME.resolve())
 NEW_MODEL = str(NEW_MODEL.resolve())
@@ -35,10 +39,10 @@ class LossTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 class ClipModel:
-    def __init__(self):
-        self.model = CLIPModel.from_pretrained(MODEL_NAME)
+    def __init__(self, base_model = HUGGING_FACE_MODEL):
+        self.model = CLIPModel.from_pretrained(base_model)
         self.model.to(device)
-        self.processor = CLIPProcessor.from_pretrained(MODEL_NAME, use_fast=True)
+        self.processor = CLIPProcessor.from_pretrained(base_model, use_fast=True)
         self.root = "data_set"
         self.dataset = None
 
@@ -120,7 +124,7 @@ class ClipModel:
             gradient_accumulation_steps=accumulation_steps,
             num_train_epochs=epoch,
             learning_rate=learning_rate,
-            fp16=True,
+            fp16=False,
             remove_unused_columns=False,
             save_strategy="epoch",
             eval_strategy="epoch",
@@ -147,7 +151,7 @@ class ClipModel:
         self._data_set_setup()
         split = self.dataset.train_test_split(test_size=0.2, seed=42)
         val_ds = split["test"]
-
+        self.model.to(device)
         self.model.eval()
 
         img_embs = []
@@ -219,7 +223,7 @@ class ClipModel:
         """
         Return the single best predicted card type for one image.
         """
-
+        self.model.to(device)
         self.model.eval()
 
         proc = self.processor(
@@ -249,8 +253,3 @@ class ClipModel:
         best_idx = sims.argmax().item()
 
         return labels[best_idx]
-
-
-if __name__ == "__main__":
-    clip = ClipModel()
-    clip.train_model(learning_rate=3e-6, epoch=15, batch_size=2, accumulation_steps=4)

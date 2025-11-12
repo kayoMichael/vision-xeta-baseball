@@ -8,4 +8,5 @@ Skenes.sqlite
 .env
 data_set
 image_classification_model/models/clip-card-model
+image_classification_model/models/clip-card-model-v1
 logs

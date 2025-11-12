@@ -12,40 +12,44 @@ from openai.types.chat import (
 )
 from context.setup.deepseek import DeepSeek
 from lxml.html import HtmlElement
-from context.const.prompt import prospect_instruction
+from typing import Optional
 
 load_dotenv()
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
 
+scrapper_header = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/123.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+}
+
 class Bichette:
-    def __init__(self, rate_limit: float = 1.0, cache: bool = True):
+    def __init__(self, rate_limit: float = 1.0, cache: bool = True, headers: dict = None):
         self.rate_limit = rate_limit
         self.session = requests_cache.CachedSession("Skenes") if cache else requests.Session()
-        self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/123.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-        }
+        self.headers = scrapper_header if headers is None else headers
 
     def fetch(self, url: str):
         """Fetch a URL and return lxml HTML tree."""
         try:
-            r = self.session.get(url, headers=self.headers)
-            r.raise_for_status()
+            response = self.session.get(url, headers=self.headers)
+            response.raise_for_status()
 
-            if not getattr(r, 'from_cache', False):
+            if not getattr(response, 'from_cache', False):
                 print(f"Fresh request for {url}, sleeping {self.rate_limit}s")
                 time.sleep(self.rate_limit)
             else:
                 print(f"Cache hit for {url}")
 
-            return html.fromstring(r.content)
+            return html.fromstring(response.content)
         except Exception as e:
             print(f"Error fetching {url}: {e}")
-            return None
+            raise e
 
     @staticmethod
     def extract_xpath(tree, xpath: str):
@@ -95,22 +99,20 @@ class Bichette:
         return re.sub(r'[\\/*?:"<>|#]', "_", name)
 
     @staticmethod
-    def deep_seek(prompt: str) -> str:
+    def minify_html_for_llm(html_text: str) -> str:
+        text = re.sub(r'\s+', ' ', html_text)
+        text = re.sub(r'>\s+<', '><', text)
+        return text.strip()
+
+    @staticmethod
+    def deep_seek(prompt: str, extract_instruction: str, system_msg: ChatCompletionSystemMessageParam) -> str:
         deepseek = DeepSeek()
-        system_msg: ChatCompletionSystemMessageParam = {
-            "role": "system",
-            "content": (
-                "You are a data parser that extracts baseball player stats "
-                "from Baseball Reference HTML into structured JSON. "
-                "Return only valid JSON, with no commentary or explanation."
-            ),
-        }
 
         user_msg: ChatCompletionUserMessageParam = {
             "role": "user",
             "content": f"""
         
-        {prospect_instruction}
+        {extract_instruction}
         HTML:
         {prompt}
         """,
@@ -146,6 +148,21 @@ class Bichette:
         if len(keyword) == 1 and keyword[0] == "blue":
             return re.search(r"\bblue\b(?!\s+jays)", title.lower()) is not None
         return all(re.search(rf"\b{word}\b", title.lower()) for word in keyword)
+
+    @staticmethod
+    def match_bowman_category(title, keyword: list[list[str]]) -> Optional[list[str]]:
+        for word_group in keyword:
+            matches = []
+            for w in word_group:
+                if w == "blue":
+                    matches.append(re.search(r"\bblue\b(?!\s+jays)", title.lower()) is not None)
+                else:
+                    matches.append(re.search(rf"\b{re.escape(w)}\b", title.lower()) is not None)
+
+            if all(matches):
+                return word_group
+
+        return None
 
     @staticmethod
     def has_auto(title: str) -> bool:

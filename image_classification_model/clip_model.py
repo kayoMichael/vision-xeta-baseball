@@ -10,16 +10,24 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+from pathlib import Path
 
 if torch.backends.mps.is_available():
+    print("Using Apple GPU")
     device = torch.device("mps")
 elif torch.cuda.is_available():
+    print("Using CUDA GPU")
     device = torch.device("cuda")
 else:
+    print("Using CPU")
     device = torch.device("cpu")
 
-MODEL_NAME = "./clip-card-model"
+ROOT_DIR = Path(__file__).resolve().parent
 
+MODEL_NAME = ROOT_DIR / "models" / "clip-card-model-v1"
+NEW_MODEL = ROOT_DIR / "models" / "clip-card-model-v1"
+MODEL_NAME = str(MODEL_NAME.resolve())
+NEW_MODEL = str(NEW_MODEL.resolve())
 
 class LossTrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
@@ -31,10 +39,10 @@ class LossTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 class ClipModel:
-    def __init__(self):
-        self.model = CLIPModel.from_pretrained(MODEL_NAME)
+    def __init__(self, base_model = MODEL_NAME):
+        self.model = CLIPModel.from_pretrained(base_model)
         self.model.to(device)
-        self.processor = CLIPProcessor.from_pretrained(MODEL_NAME, use_fast=True)
+        self.processor = CLIPProcessor.from_pretrained(base_model, use_fast=True)
         self.root = "data_set"
         self.dataset = None
 
@@ -90,7 +98,7 @@ class ClipModel:
 
         return labels
 
-    def train_model(self):
+    def train_model(self, learning_rate, epoch, batch_size, accumulation_steps):
         self._data_set_setup()
 
         split = self.dataset.train_test_split(test_size=0.2, seed=42)
@@ -111,18 +119,18 @@ class ClipModel:
             return proc
 
         training_args = TrainingArguments(
-            output_dir="../../clip-card-model",
-            per_device_train_batch_size=2,
-            gradient_accumulation_steps=4,
-            num_train_epochs=15,
-            learning_rate=5e-6,
-            fp16=True,
+            output_dir=NEW_MODEL,
+            per_device_train_batch_size=batch_size,
+            gradient_accumulation_steps=accumulation_steps,
+            num_train_epochs=epoch,
+            learning_rate=learning_rate,
+            fp16=False,
             remove_unused_columns=False,
             save_strategy="epoch",
             eval_strategy="epoch",
             load_best_model_at_end=False,
             logging_steps=50,
-            logging_dir="../../logs",
+            logging_dir="../logs",
         )
         trainer = LossTrainer(
             model=self.model,
@@ -132,8 +140,8 @@ class ClipModel:
             data_collator=collate_fn,
         )
         trainer.train()
-        trainer.save_model("./clip-card-model")
-        self.processor.save_pretrained("./clip-card-model")
+        trainer.save_model(NEW_MODEL)
+        self.processor.save_pretrained(NEW_MODEL)
 
 
     def compute_retrieval_accuracy(self, batch_size=64):
@@ -143,7 +151,7 @@ class ClipModel:
         self._data_set_setup()
         split = self.dataset.train_test_split(test_size=0.2, seed=42)
         val_ds = split["test"]
-
+        self.model.to(device)
         self.model.eval()
 
         img_embs = []
@@ -215,7 +223,7 @@ class ClipModel:
         """
         Return the single best predicted card type for one image.
         """
-
+        self.model.to(device)
         self.model.eval()
 
         proc = self.processor(

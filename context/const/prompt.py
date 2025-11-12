@@ -1,4 +1,5 @@
 from context.support.method import get_current_mlb_season
+from openai.types.chat import ChatCompletionSystemMessageParam
 
 prospect_extract_instruction = """
 Output ONLY valid JSON following this schema exactly:
@@ -68,6 +69,85 @@ Rules:
 
 prospect_instruction = prospect_extract_instruction.format(season=get_current_mlb_season())
 
+def sports_pro_link_extraction_instruction(card_label: str) -> str:
+    return f"""
+    You are given a snippet of HTML containing multiple card listings from sportscardspro.com.
+    Each listing includes a card name and its corresponding link (a <a> tag).
 
+    Task:
+    - Find the link that belongs to the card whose label or name best matches "{card_label}".
+    - If multiple are similar, choose the one that most closely matches the given label.
+    - The link is in the format "https://www.sportscardspro.com/game/xxx".
 
+    Output:
+    Return a single JSON object in the following format:
+    {{
+        "url": string
+    }}
+    """
 
+sports_cards_extract_system_msg: ChatCompletionSystemMessageParam = {
+    "role": "system",
+    "content": (
+        "You are a data parser that extracts a valid url from the given html from sportscardspro"
+        "Return ONLY ONE valid URL in string format https://www.sportscardspro.com/game/xxx and NOTHING else. ABSOLUTELY NOTHING ELSE"
+    ),
+}
+
+card_info_extract_system_msg: ChatCompletionSystemMessageParam = {
+    "role": "system",
+    "content": (
+        "You are a data parser that extracts a valid url from the given html from sportscardspro"
+        "Return Return only valid JSON, with no commentary or explanation."
+    )
+}
+
+baseball_reference_system_msg: ChatCompletionSystemMessageParam = {
+        "role": "system",
+        "content": (
+            "You are a data parser that extracts baseball player stats "
+            "from Baseball Reference HTML into structured JSON. "
+            "Return only valid JSON, with no commentary or explanation."
+        ),
+    }
+
+ocr_system_msg: ChatCompletionSystemMessageParam = {
+    "role": "system",
+    "content": (
+        "You are given OCR-extracted text from a baseball card (front + back). "
+    ),
+}
+
+card_info_extract_instruction = """
+Output ONLY valid JSON following this schema exactly:
+{{
+"card_price": {{
+    "ungraded": "string | null",
+    "grade 1": "string | null",
+    "grade 2": "string | null",
+    "grade 3": "string | null",
+    "grade 4": "string | null",
+    "grade 5": "string | null",
+    "grade 6": "string | null",
+    "grade 7": "string | null",
+    "grade 8": "string | null"
+    "grade 9": "string | null"
+    "grade 9.5": "string | null"
+    "TAG 10": "string | null",
+    "ACE 10": "string | null",
+    "SGC 10": "string | null",
+    "CGC 10": "string | null",
+    "PSA 10": "string | null",
+    "BGS 10": "string | null",
+    "BGS 10 Black": "string | null",
+    "CGC 10 Pristine": "string | null",
+  }},
+  "card_volume": {{
+    "ungraded sold listings": int,
+    "grade 7 sold listings": int,
+    "grade 8 sold listings": int,
+    "grade 9 sold listings": int,
+    "grade 10 sold listings": int,
+  }}
+}}
+"""

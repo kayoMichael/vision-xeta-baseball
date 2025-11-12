@@ -1,6 +1,8 @@
 from context.schemas.prospect import Prospect
 from context.support.chadwick_register import ChadwickRegister
 from context.setup.extract import Bichette
+from context.const.prompt import baseball_reference_system_msg
+from context.const.prompt import prospect_instruction
 import json
 
 def prospect_info(prospect: Prospect):
@@ -13,6 +15,6 @@ def prospect_info(prospect: Prospect):
     bichette = Bichette(rate_limit=0, cache=False)
     stat_html = bichette.fetch(f"https://www.baseball-reference.com/players/{player_id[0]}/{player_id}.shtml")
     prompt = bichette.clean_html_for_ai(stat_html)
-    statistics = bichette.deep_seek(prompt)
+    statistics = bichette.deep_seek(prompt=prompt, extract_instruction=prospect_instruction, system_msg=baseball_reference_system_msg)
 
     return json.loads(statistics)

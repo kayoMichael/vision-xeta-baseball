@@ -1,14 +1,9 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from context.main import mcp
 from context.services.predict_service import predict_service
 
-predict_router = APIRouter()
-
-@predict_router.post("/predict")
-async def predict(front: UploadFile = File(...), back: UploadFile = File(...)):
-    front_bytes_data = await front.read()
-    back_bytes_data = await back.read()
-    try:
-        result = predict_service(front_bytes_data, back_bytes_data)
-    except Exception as exception:
-        raise HTTPException(status_code=400, detail=str(exception))
+@mcp.tool()
+def predict_card(front_path: str, back_path: str):
+    """Predict rarity and extract OCR info from front/back card images."""
+    with open(front_path, "rb") as f1, open(back_path, "rb") as f2:
+        result = predict_service(f1.read(), f2.read())
     return result

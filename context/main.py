@@ -1,18 +1,17 @@
-from fastapi import FastAPI
-from context.routes.predict import predict_router
-from context.routes.prospect import prospect_router
-from context.routes.card_info import card_router
-app = FastAPI()
+from mcp.server.fastmcp import FastMCP
 
-app.include_router(predict_router)
-app.include_router(prospect_router)
-app.include_router(card_router)
+mcp = FastMCP("BaseballCardMCP")
 
-@app.get("/")
-def health_check():
-    """
-    health check for the Context server
-    :return: payload
-    """
-    return {"body": "special week!"}
+def load_endpoint():
+    # Predict Endpoint
+    import context.routes.predict
 
+    # Card Prices Endpoint
+    import context.routes.card_info
+
+    # Card Prospect Endpoint
+    import context.routes.prospect
+
+if __name__ == "__main__":
+    load_endpoint()
+    mcp.run()

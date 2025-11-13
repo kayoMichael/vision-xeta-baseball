@@ -1,14 +1,12 @@
-from fastapi import APIRouter, HTTPException
 from context.services.prospect_service import prospect_info
 from context.schemas.prospect import Prospect
+from context.main import mcp
 
-prospect_router = APIRouter()
-
-@prospect_router.get("/prospect")
+@mcp.tool()
 def prospect(body: Prospect):
     try:
         stat = prospect_info(body)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail={e})
+        raise e
 
     return stat

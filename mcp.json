@@ -1,0 +1,25 @@
+{
+  "name": "baseball-card-classifier",
+  "description": "An MCP server that analyzes baseball cards using CLIP, OCR, and pricing data.",
+  "version": "1.0.0",
+  "servers": {
+    "local": {
+      "command": "python",
+      "args": ["context/main.py"]
+    }
+  },
+  "tools": [
+    {
+      "name": "predict_card",
+      "description": "Predict rarity and extract OCR text from baseball card front/back images."
+    },
+    {
+      "name": "prospect",
+      "description": "Fetch player statistics from Baseball Reference."
+    },
+    {
+      "name": "baseball_card",
+      "description": "Fetch card prices, grade values, and sold listings from SportscardsPro."
+    }
+  ]
+}

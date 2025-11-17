@@ -13,6 +13,7 @@ from openai.types.chat import (
 from context.setup.deepseek import DeepSeek
 from lxml.html import HtmlElement
 from typing import Optional
+import asyncio
 
 load_dotenv()
 DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
@@ -29,15 +30,16 @@ scrapper_header = {
 }
 
 class Bichette:
-    def __init__(self, rate_limit: float = 1.0, cache: bool = True, headers: dict = None):
+    def __init__(self, rate_limit: float = 1.0, cache: bool = True, headers: dict = None, params: dict = None):
         self.rate_limit = rate_limit
         self.session = requests_cache.CachedSession("Skenes") if cache else requests.Session()
         self.headers = scrapper_header if headers is None else headers
+        self.params = params if params is not None else {}
 
     def fetch(self, url: str):
         """Fetch a URL and return lxml HTML tree."""
         try:
-            response = self.session.get(url, headers=self.headers)
+            response = self.session.get(url, headers=self.headers, params=self.params)
             response.raise_for_status()
 
             if not getattr(response, 'from_cache', False):
@@ -50,6 +52,19 @@ class Bichette:
         except Exception as e:
             print(f"Error fetching {url}: {e}")
             raise e
+
+    def invoke(self, url: str):
+        """ Invoke normal API Call"""
+        try:
+            response = self.session.get(url, headers=self.headers, params=self.params)
+            response.raise_for_status()
+            return response
+        except Exception as e:
+            print(f"Error fetching {url}: {e}")
+            raise e
+
+    async def deep_seek_async(self, prompt: str, extract_instruction: str, system_msg):
+        return await asyncio.to_thread(self.deep_seek, prompt, extract_instruction, system_msg)
 
     @staticmethod
     def extract_xpath(tree, xpath: str):

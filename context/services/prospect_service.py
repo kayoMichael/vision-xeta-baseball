@@ -13,7 +13,7 @@ import asyncio
 load_dotenv()
 BRAVE_API_KEY = os.environ["BRAVE_API_KEY"]
 
-def prospect_info(prospect: Prospect):
+async def prospect_info(prospect: Prospect):
     player_minor_league_id = find_minor_league_id(player_name=f"{prospect.first_name} {prospect.last_name}", year_of_birth=prospect.birth_year, month_of_birth= prospect.birth_month, day_of_birth=prospect.birth_day)
     bichette = Bichette(rate_limit=0, cache=False)
     if not player_minor_league_id:
@@ -72,13 +72,11 @@ def prospect_info(prospect: Prospect):
         prompt = bichette.clean_html_for_ai(major_league_stat_html)
         major_league_statistics = bichette.deep_seek_async(prompt=prompt, extract_instruction=prospect_instruction,
                                                      system_msg=baseball_reference_system_msg)
-    res_major, res_minor = asyncio.run(statistic(major_league_statistics, minor_league_statistics))
+    res_major, res_minor = await statistic(major_league_statistics, minor_league_statistics)
     if res_major:
         res_major = json.loads(res_major)
     if res_minor:
         res_minor = json.loads(res_minor)
-    import pdb;
-    pdb.set_trace()
     return {"Major League Statistics": res_major, "Minor League Statistics": res_minor}
 
 async def statistic(major, minor):

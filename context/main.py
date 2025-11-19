@@ -21,10 +21,10 @@ def predict_card(front_path: str, back_path: str):
     return result
 
 @mcp.tool()
-def prospect(body: Prospect):
+async def prospect(body: Prospect):
     """Fetch Player Statistics in both Major and Minor League Baseball."""
     try:
-        stat = prospect_info(body)
+        stat = await prospect_info(body)
     except ValueError as e:
         raise e
     return stat

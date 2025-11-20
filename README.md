@@ -14,7 +14,7 @@ This MCP toolset helps collectors evaluate whether a specific Bowman Prospects c
 By combining rarity classification, player analytics, and real-time market data, the MCP gives users a clear, data-driven picture of whether their card is a low-upside flip or a high-upside long-term hold worth keeping in pristine condition or even worth grading if its ungraded.
 
 ## Available Tools:
-- Full Classification of the baseball card from Image using a Fine-Tuned [Clip Model](https://openai.com/index/clip/) (~12,000 datasets) and easyocr to identify Rarity (chrome, Blue, atomic, etc.), Player on the card, Grading and other General Information.
+- Full Classification of the baseball card from Image using a Fine-Tuned [Clip Model](https://openai.com/index/clip/) (~12,000 datasets) to identify Rarity (chrome, Blue, atomic, etc.), Player on the card, and easyocr to find Grading information as well as and other General Information on the card such as player, code, resume and the year the card was issued.
 - Provides Full Career Statistics (Major League and Minor League) including advanced stats such as (WAR, DRS, OPS+, etc.) for full potential and production analysis.
 - Provides full pricing data of the card, Volume Sold, for all grading types.
 

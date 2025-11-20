@@ -1,5 +1,4 @@
 import re
-import os
 import pdfplumber
 from context.setup.extract import Bichette
 from context.const.baseball_const import BOWMAN_PAPER_PARALLELS_LIST, BOWMAN_CHROME_PARALLELS_LIST, BOWMAN_CHROME_PARALLELS_DICT

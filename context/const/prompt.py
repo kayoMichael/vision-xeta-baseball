@@ -2,7 +2,28 @@ from context.support.method import get_current_mlb_season
 from openai.types.chat import ChatCompletionSystemMessageParam
 
 prospect_extract_instruction = """
-Output ONLY valid JSON following this schema exactly:
+Output ONLY valid JSON following the schema below.
+
+ABSOLUTE RULES (READ CAREFULLY):
+
+1. A player is a TWO-WAY PLAYER (TWP) if they have MLB data as BOTH:
+   - a pitcher, AND
+   - a batter
+   at any point in their career.
+   If a player is a TWP, YOU MUST return BOTH batting and pitching stats.
+   Do not leave either section null for a TWP.
+   Do not return anything unless BOTH batting and pitching stats are filled for a TWP.
+
+2. If a player is NOT a TWP:
+   - If the player has ONLY pitching stats → pitching filled, batting = null.
+   - If the player has ONLY batting stats → batting filled, pitching = null.
+
+3. The player's listed "position" in the HTML DOES NOT determine whether they are a TWP.
+   Use the presence of real batting/pitching statistics to determine if they are a TWP.
+
+4. Follow the schema EXACTLY. No extra fields. No comments. JSON only.
+
+Schema:
 {{
   "player_profile": {{
     "name": "string",
@@ -13,7 +34,7 @@ Output ONLY valid JSON following this schema exactly:
     "weight": "string",
     "birth_date": "string",
     "latest_team": "string",
-    "status": "minors (40-man)" | "minors" | "majors" | "retired"
+    "status": "minors (40-man)" | "minors" | "majors" | "retired",
     "draft_info": "string | null"
   }},
   "career_totals": {{
@@ -25,17 +46,77 @@ Output ONLY valid JSON following this schema exactly:
     "pitching": {{"w": "int", "l": "int", "era": "float", "so": "int", "war": "float", "ip": "float", "whip": "float",
                  "G": "int", "GS": "int", "bb": "int", "GF": "int", "CG": "int", "SV": "int", "SHO": "int", "HBP": "int",
                  "FIP": "float", "SO9": "float", "H9": "float", "HR9": "float", "WP": "int", "SO/BB": "float"}} | null,
-    "fielding": {{"Inn": "float", "PO": "int", "A": "int", "E": "int", "DP": "int", "Fld%": "float", "RF/9": "float", "DRS": "int | null", "OAA": "int | null",
-                  "UZR": "float | null", "RngR": "float | null", "ARM": "float | null", "DPR": "float | null", "dWAR": "float | null",
-                  "CS%": "float | null", "CFRM": "float | null", "Pos": "string"}}
+    "fielding": {{ "Inn": "float", "PO": "int", "A": "int", "E": "int", "DP": "int", "Fld%": "float", "RF/9": "float",
+                   "DRS": "int | null", "OAA": "int | null", "UZR": "float | null", "RngR": "float | null",
+                   "ARM": "float | null", "DPR": "float | null", "dWAR": "float | null",
+                   "CS%": "float | null", "CFRM": "float | null", "Pos": "string" }}
   }},
-  "key_awards": {{"MVP": "int", "All Star": "int", "GG": "int", "Platinum Glove": "int", "ML PoY": "int",
-                 "ERA Title": "int", "Batting title": "int", "Cy Young": "int", "Triple Crown": "int",
-                 "World Series": "int", "WS MVP": "int", "NLCS MVP": "int", "ALCS MVP": "int", "ROY": "int"}}
+  "key_awards": {{
+    "MVP": "int", "All Star": "int", "GG": "int", "Platinum Glove": "int", "ML PoY": "int",
+    "ERA Title": "int", "Batting title": "int", "Cy Young": "int", "Triple Crown": "int",
+    "World Series": "int", "WS MVP": "int", "NLCS MVP": "int", "ALCS MVP": "int", "ROY": "int"
+  }}
 }}
-- Do NOT list every season or game.
-- If a field does not exist, set it to null.
-- For current_year_stats, list the stats for the player for the season {season}
+
+Do NOT list individual seasons or games.
+Set missing fields to null.
+For current_year_stats, use the season: {season}
+"""
+
+minor_league_prospect_instruction = """
+Output ONLY valid JSON. No comments. No text outside JSON. No missing commas. No trailing commas.
+
+READ THESE RULES CAREFULLY:
+
+1. TWO-WAY PLAYER RULE (TWP):
+   A player is a TWP if BOTH a Register Pitching TABLE and a Register Batting TABLE exist in the HTML.
+   If TWP:
+      - You MUST return BOTH batting AND pitching sections for EVERY season.
+      - Do NOT return null for either section.
+   If NOT TWP:
+      - If only pitching table exists → pitching filled, batting = null.
+      - If only batting table exists → batting filled, pitching = null.
+
+2. MAJOR LEAGUE ROWS:
+   Ignore ALL rows where Lev = "Maj" | "SUMM". Only extract MINOR/Foreign LEAGUE seasons.
+
+3. SEASON OBJECTS:
+   For EACH minor league season in the tables:
+      - Create a key in the JSON object named "season YEAR", e.g., "season 2022" or "season 2023".
+      - Replace YEAR with the actual numeric season from the HTML.
+   Do NOT literally output "season xxx".
+
+4. Schema Requirements:
+   You must follow the schema EXACTLY.
+   Replace all "string", "int", "float" placeholders with REAL extracted values.
+   Do NOT include any extra fields not listed in the schema.
+   All numeric values must be actual numbers, not quoted placeholders.
+
+5. Output ONLY ONE top-level JSON object containing:
+   - "player_profile" { ... }
+   - one "season YEAR" object for each Season of minor league. If the player played in different Levels of Minor League in one year. List the aggregate season stats.
+
+{{
+  "player_profile": {{
+    "name": "string",
+    "position": "string",
+    "bats": "string",
+    "throws": "string",
+    "height": "string",
+    "weight": "string",
+    "birth_date": "string",
+    "latest_team": "string",
+    "status": "minors (40-man)" | "minors" | "majors" | "retired",
+    "draft_info": "string | null"
+  }},
+  "season YEAR": {{
+    "current_league_level": "Rk" | "A-" | "A" | "Fgn" | "A+" | "Fal" | "AA" | "AAA" | "NCAA" if more then one minor league: put them seperated in a slash (e.g A - AA)
+    "batting": {{"ba": "float", "hr": "int", "rbi": "int", "h": "int", "obp": "float", "slg": "float", "ops": "int", "tb": "int", "ibb": "int"}} | null,
+    "pitching": {{"w": "int", "l": "int", "era": "float", "so": "int", "war": "float", "ip": "float", "whip": "float",
+                 "G": "int", "GS": "int", "bb": "int", "GF": "int", "CG": "int", "SV": "int", "SHO": "int", "HBP": "int",
+                 "FIP": "float", "SO9": "float", "H9": "float", "HR9": "float", "WP": "int", "SO/BB": "float"}} | null,
+  }},
+}}
 """
 
 card_extract_instruction = """

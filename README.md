@@ -1,16 +1,27 @@
 # Bowman Prospects Classification MCP Server
 
-This Application Allows Users to Give Tools to Claude to Fully Classify their Bowman Prospects Card (Chrome or Paper) to determine wheather it has current/future value.
+The value of a Bowman Prospects baseball card is driven almost entirely by two factors:
+1. Its rarity (e.g., Atomic, Fuchsia, Shimmer, Gold, etc.) and
+2. The player’s current talent level and projected future success in Major League Baseball.
+3. The Grading of the Card (PSA 10, PSA 9, ungraded, etc.)
+
+Baseball is one of the most prospect-centric sports in the world. Unlike other sports leagues where teams aggressively trade for established stars or draft picks, MLB organizations routinely stockpile prospects and long-term upside. Because of this, Baseball focuses a lot on prospect development and when they do break out, their Bowman Prospect card can skyrocket in value overnight.
+
+This MCP toolset helps collectors evaluate whether a specific Bowman Prospects card is worth protecting, grading, or holding long-term. It analyzes:
+- Card rarity and parallel type
+- Player performance profile and breakout potential
+- Historical and current market prices across grading tiers
+By combining rarity classification, player analytics, and real-time market data, the MCP gives users a clear, data-driven picture of whether their card is a low-upside flip or a high-upside long-term hold worth keeping in pristine condition or even worth grading if its ungraded.
 
 ## Available Tools:
 - Full Classification of the baseball card from Image using a Fine-Tuned [Clip Model](https://openai.com/index/clip/) (~12,000 datasets) and easyocr to identify Rarity (chrome, Blue, atomic, etc.), Player on the card, Grading and other General Information.
 - Provides Full Career Statistics (Major League and Minor League) including advanced stats such as (WAR, DRS, OPS+, etc.) for full potential and production analysis.
-- Provides full pricing data of the card, Volume Sold, for the specific grading.
+- Provides full pricing data of the card, Volume Sold, for all grading types.
 
 ## Sample Workflow
 
 ### Input
-Consider the Input of paths to these 2 pictures. (As of Now (Nov 20, 2025), Local MCP doesn't support directly attaching images into Claude Desktop)
+Consider the Input of paths to these 2 pictures for the Washington Nationals Prospect Hyun-Il Choi. As of Now (Nov 20, 2025), MCP doesn't support directly attaching images into Claude Desktop so we attach file paths for claude to feed. This also ensures Claude can never see the picture and do their own analysis outside of the MCP tool.
 <p float="left">
   <img src="https://github.com/user-attachments/assets/399ddadd-20ff-4df5-bf2b-ddc2ac23d4fc" width="200" />
   <img src="https://github.com/user-attachments/assets/a82a5db7-1fce-4616-ab6a-aa0bdfce313b" width="200" />

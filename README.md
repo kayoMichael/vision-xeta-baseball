@@ -1,6 +1,6 @@
 # Bowman Prospects Classification MCP Server
 
-The value of a Bowman Prospects baseball card is driven almost entirely by two factors:
+The value of a Bowman Prospects baseball card is driven almost entirely by 3 factors:
 1. Its rarity (e.g., Atomic, Fuchsia, Shimmer, Gold, etc.) and
 2. The player’s current talent level and projected future success in Major League Baseball.
 3. The Grading of the Card (PSA 10, PSA 9, ungraded, etc.)
